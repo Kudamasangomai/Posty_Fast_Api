@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import FastAPI , Body , Depends ,Query ,HTTPException
+from fastapi import FastAPI , Body , Depends ,Query ,HTTPException ,status
 import schemas
 import models
 from database import Base ,engine ,sessionLocal
@@ -16,29 +16,31 @@ def get_session():
 
 app = FastAPI(
     title="Posty API",
-    description="API for my blog post application . ",
-    summary="Just learning API devlopment with fast api",
+    description="API for my Post application . ",
+    summary="Just learning API devlopment with Fast API",
     contact={
         "name" : "Kudakwashe Masangomai",
         "email" : "kudam775@gmail.com"
     }
 )
 
-# fakedb ={
-#     1:{'post':'clean car'},
-#     2:{'post':'clean house'},
-#     3:{'post':'go fo gym'},
-# }
+fakeuserdb ={
+    1:{'user':'Kuda'},
+    2:{'user':'Tamie'},
+    3:{'user':'Thelma'},
+}
 
-
-@app.get("/")
-def posts(session: Session = Depends(get_session)):
-    posts = session.query(models.Post).all()
+@app.get("/" ,tags=["Posts"])
+def posts(db: Session = Depends(get_session)):
+    posts = db.query(models.Post).all()
     return posts
 
-@app.get("/{id}")
-def post(id:int ,session: Session = Depends(get_session)):
-    post = session.query(models.Post).get(id)
+@app.get("/{id}",status_code=status.HTTP_200_OK ,tags=["Posts"])
+def post(id:int ,db: Session = Depends(get_session)):
+    post = db.query(models.Post).get(id)
+
+    if post is None:
+        raise HTTPException(status_code=404,detail="Post not Found")
     return post
 
 #pass in parameters
@@ -49,12 +51,12 @@ def post(id:int ,session: Session = Depends(get_session)):
 #     return fakedb
 
 #this use pydantic
-@app.post("/")
-def store(post:schemas.Post, session: Session = Depends(get_session)):
+@app.post("/" ,tags=["Posts"])
+def store(post:schemas.Post, db: Session = Depends(get_session)):
     post = models.Post(post = post.post)
-    session.add(post)
-    session.commit()
-    session.refresh(post)
+    db.add(post)
+    db.commit()
+    db.refresh(post)
     return post
 
 #this one use body request
@@ -65,23 +67,40 @@ def store(post:schemas.Post, session: Session = Depends(get_session)):
 #     return fakedb
 
 
-@app.put("/{id}")
-def update(id:int, post:schemas.Post, session: Session = Depends(get_session)):
-    postobj = session.query(models.Post).get(id)
-    postobj.post = post.post
-    session.commit()
-    return postobj
+@app.put("/{id}" ,tags=["Posts"])
+def update(id:int, post:schemas.Post, db: Session = Depends(get_session)):
+    try:
+       postobj = db.query(models.Post).filter_by(id=id).first()
+       postobj.post = post.post
+       db.commit()
+       return postobj
+
+    except Exception as e:
+        db.rollback()  # Rollback the session in case of an error
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post Not Found slslsl")
+    finally:
+        db.close()
+    
 
 
-@app.delete("/{id}")
-def destory(id:int, session: Session = Depends(get_session)):
-    post = session.query(models.Post).get(id)
-    session.delete(post)
-    session.commit()
-    session.close()
-    return 'Post was deleted...'
+@app.delete("/{id}" ,tags=["Posts"])
+def destory(id:int, db: Session = Depends(get_session)):
+    post = db.query(models.Post).get(id)
+    if post is None:
+      raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post Not Found")
+    db.delete(post)
+    db.commit()
+    db.close()
+    return {"message": "Post was deleted successfully."}
 
-@app.get("/search/{search}")
+@app.get("/search/{search}" , tags=["Posts"])
 def search(search:str, db: Session = Depends(get_session)): 
     searchq = db.query(models.Post).filter(models.Post.post.contains(search)).all()
-    return searchq
+    if searchq:
+        return searchq
+    return {"message":"No results found"}
+
+
+@app.get("/users/", tags=["Users"])
+def users():
+    return fakeuserdb
