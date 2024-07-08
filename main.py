@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import FastAPI , Body , Depends ,Query ,HTTPException
 import schemas
 import models
@@ -79,3 +80,8 @@ def destory(id:int, session: Session = Depends(get_session)):
     session.commit()
     session.close()
     return 'Post was deleted...'
+
+@app.get("/search/{search}")
+def search(search:str, db: Session = Depends(get_session)): 
+    searchq = db.query(models.Post).filter(models.Post.post.contains(search)).all()
+    return searchq
