@@ -4,6 +4,7 @@ import schemas
 import models
 from database import Base ,engine ,sessionLocal
 from sqlalchemy.orm import Session
+from datetime import datetime
 
 Base.metadata.create_all(engine)
 
@@ -43,14 +44,7 @@ def post(id:int ,db: Session = Depends(get_session)):
         raise HTTPException(status_code=404,detail="Post not Found")
     return post
 
-#pass in parameters
-# @app.post("/")
-# def store(post:str):
-#     newid = len(fakedb.keys()) + 1
-#     fakedb[newid] = {"post":post}
-#     return fakedb
 
-#this use pydantic
 @app.post("/" ,tags=["Posts"])
 def store(post:schemas.Post, db: Session = Depends(get_session)):
     post = models.Post(post = post.post)
@@ -59,29 +53,22 @@ def store(post:schemas.Post, db: Session = Depends(get_session)):
     db.refresh(post)
     return post
 
-#this one use body request
-# @app.post("/")
-# def store(body = Body()):
-#     newid = len(fakedb.keys()) + 1
-#     fakedb[newid] = {"post":body['post']}
-#     return fakedb
-
 
 @app.put("/{id}" ,tags=["Posts"])
 def update(id:int, post:schemas.Post, db: Session = Depends(get_session)):
     try:
        postobj = db.query(models.Post).filter_by(id=id).first()
        postobj.post = post.post
+       postobj.updated_at = datetime.now()
        db.commit()
        return postobj
 
     except Exception as e:
-        db.rollback()  # Rollback the session in case of an error
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post Not Found slslsl")
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post Not Found")
     finally:
         db.close()
     
-
 
 @app.delete("/{id}" ,tags=["Posts"])
 def destory(id:int, db: Session = Depends(get_session)):
@@ -100,7 +87,20 @@ def search(search:str, db: Session = Depends(get_session)):
         return searchq
     return {"message":"No results found"}
 
+@app.post("/publish", tags=['Posts'])
+def publish_post(id:int , db : Session = Depends(get_session)):
+        post = db.query(models.Post).get(id)
+        if post is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post Not Found")
 
+        post.published = not post.published
+        db.commit()
+        message = "Post published successfully" if post.published else "Post unpublished successfully"
+        return {"message": message}
+         
 @app.get("/users/", tags=["Users"])
 def users():
     return fakeuserdb
+
+
+     
