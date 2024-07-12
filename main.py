@@ -5,6 +5,8 @@ import models
 from database import Base ,engine ,sessionLocal
 from sqlalchemy.orm import Session
 from datetime import datetime
+from typing import Annotated
+from fastapi.security import OAuth2PasswordBearer ,OAuth2PasswordRequestForm
 
 Base.metadata.create_all(engine)
 
@@ -19,20 +21,18 @@ app = FastAPI(
     title="Posty API",
     description="API for my Post application . ",
     summary="Just learning API devlopment with Fast API",
-    contact={
-        "name" : "Kudakwashe Masangomai",
-        "email" : "kudam775@gmail.com"
-    }
+    contact={"name" : "Kudakwashe Masangomai", "email" : "kudam775@gmail.com" }
 )
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 fakeuserdb ={
     1:{'user':'Kuda'},
     2:{'user':'Tamie'},
     3:{'user':'Thelma'},
 }
-
-@app.get("/" ,tags=["Posts"])
-def posts(db: Session = Depends(get_session)):
+         
+@app.get("/posts" ,tags=["Posts"])
+def posts(db: Session = Depends(get_session), ):
     posts = db.query(models.Post).all()
     return posts
 
@@ -97,7 +97,16 @@ def publish_post(id:int , db : Session = Depends(get_session)):
         db.commit()
         message = "Post published successfully" if post.published else "Post unpublished successfully"
         return {"message": message}
+
+
+@app.post("/likepost/" ,tags=['Posts'])
+async def like_post():
+    return {"liked button"}
          
+@app.post("/user/signup", tags=["Users"])
+async def create_user(user: schemas.User):
+    return (user)
+
 @app.get("/users/", tags=["Users"])
 def users():
     return fakeuserdb

@@ -1,4 +1,4 @@
-from pydantic import (BaseModel,field_validator,Field )
+from pydantic import (BaseModel,field_validator,Field,EmailStr )
 
 #used for validation 
 
@@ -11,3 +11,8 @@ class Post(BaseModel):
         if not v.strip():
             raise ValueError('post field must not be empty')
         return v
+    
+class User(BaseModel):
+    fullname: str = Field(...)
+    email: EmailStr = Field(...)
+    password: str = Field(...)
