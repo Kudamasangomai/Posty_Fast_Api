@@ -1,3 +1,4 @@
+import auth
 import models
 import schemas
 from typing import List
@@ -26,6 +27,7 @@ app = FastAPI(
     # This is global BasicAuth protection i.e all routes are protected
     # dependencies= [Depends(security)] 
 )
+app.include_router(auth.router)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 fakeuserdb ={
@@ -34,20 +36,6 @@ fakeuserdb ={
     3:{'user':'Thelma'},
 }
 
-@app.post("/register"  ,tags=['Auth'])
-def register(request:schemas.User, db: Session = Depends(get_session)):
-    user = models.User(
-        name = request.name ,
-        username = request.username ,
-        email = request.email,        
-        password = request.password ,
-        )
-   
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return user
-         
 @app.get("/posts" ,tags=["Posts"])
 def posts(db: Session = Depends(get_session), ):
     posts = db.query(models.Post).all()
