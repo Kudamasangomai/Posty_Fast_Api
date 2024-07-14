@@ -1,4 +1,10 @@
 from pydantic import (BaseModel,field_validator,Field,EmailStr)
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+
+engine = create_engine("sqlite:///post.db")
+sessionLocal = sessionmaker(bind=engine,expire_on_commit=False)
 
 #used for validation 
 
@@ -19,6 +25,15 @@ class User(BaseModel):
     email: EmailStr
     password: str = Field(min_length=3)
 
-    @field_validator('email','username')
-    def validate_email(cls, v):
-        return v
+    @field_validator('username','email')
+    def validate_email(cls,username,email,**kwargs,):
+          db = sessionLocal()
+          try:
+            db_user = db.query(User).filter((User.username == username)  | (User.email == email)).first()
+
+            if db_user:
+                raise ValueError('Username already registered')
+          finally:
+            db.close()
+            return username
+            return v
