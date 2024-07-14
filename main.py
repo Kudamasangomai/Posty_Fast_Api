@@ -1,12 +1,12 @@
-from typing import List
-from fastapi import FastAPI , Body , Depends ,Query ,HTTPException ,status
-import schemas
 import models
-from database import Base ,engine ,sessionLocal
-from sqlalchemy.orm import Session
-from datetime import datetime
+import schemas
+from typing import List
 from typing import Annotated
-from fastapi.security import OAuth2PasswordBearer ,OAuth2PasswordRequestForm
+from datetime import datetime
+from sqlalchemy.orm import Session
+from database import Base ,engine ,sessionLocal
+from fastapi import FastAPI , Body , Depends ,Query ,HTTPException ,status
+from fastapi.security import OAuth2PasswordBearer ,OAuth2PasswordRequestForm ,HTTPBasic ,HTTPBasicCredentials
 
 Base.metadata.create_all(engine)
 
@@ -17,11 +17,14 @@ def get_session():
     finally:
         session.close()
 
+security = HTTPBasic()
 app = FastAPI(
     title="Posty API",
     description="API for my Post application . ",
     summary="Just learning API devlopment with Fast API",
-    contact={"name" : "Kudakwashe Masangomai", "email" : "kudam775@gmail.com" }
+    contact={"name" : "Kudakwashe Masangomai", "email" : "kudam775@gmail.com" },
+    # This is global BasicAuth protection i.e all routes are protected
+    # dependencies= [Depends(security)] 
 )
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
@@ -30,6 +33,20 @@ fakeuserdb ={
     2:{'user':'Tamie'},
     3:{'user':'Thelma'},
 }
+
+@app.post("/register"  ,tags=['Auth'])
+def register(request:schemas.User, db: Session = Depends(get_session)):
+    user = models.User(
+        name = request.name ,
+        username = request.username ,
+        email = request.email,        
+        password = request.password ,
+        )
+   
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
          
 @app.get("/posts" ,tags=["Posts"])
 def posts(db: Session = Depends(get_session), ):

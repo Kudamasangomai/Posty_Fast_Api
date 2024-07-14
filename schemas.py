@@ -13,6 +13,7 @@ class Post(BaseModel):
         return v
     
 class User(BaseModel):
-    fullname: str = Field(...)
-    email: EmailStr = Field(...)
-    password: str = Field(...)
+    name: str = Field(min_length=5)
+    username : str = Field(min_length=4)
+    email: EmailStr
+    password: str = Field(min_length=3)
