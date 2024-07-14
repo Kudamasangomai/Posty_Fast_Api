@@ -33,3 +33,13 @@ def register(request:schemas.User, db: Session = Depends(get_session)):
                 db.rollback()
                 raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"An error occurred: {str(e)}")
   
+
+  
+@router.post("/login"  ,tags=['Auth'])
+def login(username:str,password:str, db: Session = Depends(get_session)):
+      usercheck = db.query(models.User).filter(models.User.username== username).first()
+      
+      if not usercheck:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid username or password")
+    
+      return {"message": "Login successful"}

@@ -37,3 +37,7 @@ class User(BaseModel):
             db.close()
             return username
             return v
+
+class Userlogin(BaseModel):
+    username : str = Field(min_length=4)
+    email: EmailStr
