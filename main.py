@@ -107,10 +107,7 @@ def publish_post(id:int , db : Session = Depends(get_session)):
 @app.post("/likepost/" ,tags=['Posts'])
 async def like_post():
     return {"liked button"}
-         
-@app.post("/user/signup", tags=["Users"])
-async def create_user(user: schemas.User):
-    return (user)
+
 
 @app.get("/users/", tags=["Users"])
 def users():
