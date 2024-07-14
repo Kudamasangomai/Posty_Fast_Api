@@ -1,27 +1,27 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-from database import sessionLocal
-from sqlalchemy.exc import IntegrityError
-from fastapi import FastAPI , Body , Depends ,Query ,HTTPException ,status
 import models
 import schemas
+from database import sessionLocal
+from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends
+from sqlalchemy.exc import IntegrityError
+from fastapi import FastAPI , Body , Depends ,Query ,HTTPException ,status
 
-
-router = APIRouter(
-    prefix="/auth",
-    tags=["Auth"]
-    )
+router = APIRouter( prefix="/auth",  tags=["Auth"] )
 def get_session():
     session = sessionLocal()
     try:
         yield session
     finally:
         session.close()
-@router.post("/register"  ,tags=['Auth'])
+@router.post("/register" ,tags=['Auth'])
 def register(request:schemas.User, db: Session = Depends(get_session)):
           try:
-                user = models.User(name = request.name ,username = request.username ,
-                    email = request.email, password = request.password ,)
+                user = models.User(
+                      name = request.name ,
+                      username = request.username ,
+                      email = request.email,
+                      password = request.password ,
+                      )
                 db.add(user)
                 db.commit()
                 db.refresh(user)

@@ -1,13 +1,12 @@
 import auth
 import models
 import schemas
-from typing import List
-from typing import Annotated
 from datetime import datetime
 from sqlalchemy.orm import Session
 from database import Base ,engine ,sessionLocal
-from fastapi import FastAPI , Body , Depends ,Query ,HTTPException ,status
-from fastapi.security import OAuth2PasswordBearer ,OAuth2PasswordRequestForm ,HTTPBasic ,HTTPBasicCredentials
+from fastapi.security import OAuth2PasswordBearer,HTTPBasic
+from fastapi import FastAPI , Depends,HTTPException ,status
+
 
 Base.metadata.create_all(engine)
 
