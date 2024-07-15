@@ -30,7 +30,7 @@ app.include_router(auth.router)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 @app.get("/posts" ,tags=["Posts"])
-def posts(db: Session = Depends(get_session), ):
+def posts(db: Session = Depends(get_session)):
     posts = db.query(models.Post).all()
     return posts
 
