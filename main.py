@@ -29,18 +29,12 @@ app = FastAPI(
 app.include_router(auth.router)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-fakeuserdb ={
-    1:{'user':'Kuda'},
-    2:{'user':'Tamie'},
-    3:{'user':'Thelma'},
-}
-
 @app.get("/posts" ,tags=["Posts"])
 def posts(db: Session = Depends(get_session), ):
     posts = db.query(models.Post).all()
     return posts
 
-@app.get("/{id}",status_code=status.HTTP_200_OK ,tags=["Posts"])
+@app.get("/{id}",dependencies= [Depends(security)], status_code=status.HTTP_200_OK ,tags=["Posts"]  )
 def post(id:int ,db: Session = Depends(get_session)):
     post = db.query(models.Post).get(id)
 
@@ -104,13 +98,14 @@ def publish_post(id:int , db : Session = Depends(get_session)):
 
 
 @app.post("/likepost/" ,tags=['Posts'])
-async def like_post():
+async def like_post(id:int ,db: Session = Depends(get_session)):
     return {"liked button"}
 
 
 @app.get("/users/", tags=["Users"])
-def users():
-    return fakeuserdb
+async def users(db:  Session = Depends(get_session)):
+    users = db.query(models.User).all()
+    return users
 
 
      

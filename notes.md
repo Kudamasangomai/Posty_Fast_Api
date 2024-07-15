@@ -1,6 +1,5 @@
 ### Fast API 
-- these are notes for my first api crud app Wist FAST API .
-- i am just learning the basics
+these are notes for my first api crud app With FAST API. i am just learning the basics
 
 -  pip install fastapi uvicorn 
 -  uvicorn is application server used to serve Python web applications that adhere to the ASGI specification.
@@ -20,4 +19,4 @@
 
 ## Authentication
 ### HTTP Basic Auth
-- the simpleste way to authenticate you using username and password
+- the simplest way to authenticate using username and password

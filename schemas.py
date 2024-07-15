@@ -32,7 +32,7 @@ class User(BaseModel):
             db_user = db.query(User).filter((User.username == username)  | (User.email == email)).first()
 
             if db_user:
-                raise ValueError('Username already registered')
+                raise ValueError('Username/ Email already registered')
           finally:
             db.close()
             return username

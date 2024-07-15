@@ -13,7 +13,7 @@ def get_session():
         yield session
     finally:
         session.close()
-@router.post("/register" ,tags=['Auth'])
+@router.post("/register")
 def register(request:schemas.User, db: Session = Depends(get_session)):
           try:
                 user = models.User(
@@ -35,7 +35,7 @@ def register(request:schemas.User, db: Session = Depends(get_session)):
   
 
   
-@router.post("/login"  ,tags=['Auth'])
+@router.post("/login")
 def login(username:str,password:str, db: Session = Depends(get_session)):
       usercheck = db.query(models.User).filter(models.User.username== username).first()
       
