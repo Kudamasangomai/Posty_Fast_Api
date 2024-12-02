@@ -8,8 +8,18 @@ these are notes for my first api crud app With FAST API. i am just learning the 
 -  access the api  docs via http://localhost:8000/docs and boom Swagger has done it for you (loved this after having     struggled in documenting laravel Api with swagger)
 
 
+## Models
 
-## migrations
+- models are classes which reperents the structue and valiadation of data used in your api
+- they are two whichh are pydantic and SQLAlchemy models
+- Pydantic focus on Validation and serialization / Deserialization  and does the more       advanced validation before it reaches the Db
+- SQLalchemy Reperents DB tables,relationships and define how data is stored and retrieved in Db and does the validation at Db Level
+
+## Schemas
+- schemas Defines the Pydantic models used to validate input and output data.
+
+
+## Migrations
 
 - Alembic is a lightweight database migration tool for usage with the SQLAlchemy
 - SQLAlchemy is Database Toolkit for Python.

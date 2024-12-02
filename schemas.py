@@ -29,10 +29,10 @@ class User(BaseModel):
     def validate_email(cls,username,email,**kwargs,):
           db = sessionLocal()
           try:
-            db_user = db.query(User).filter((User.username == username)  | (User.email == email)).first()
+            userexsist = db.query(User).filter((User.username == username)  | (User.email == email)).first()
 
-            if db_user:
-                raise ValueError('Username/ Email already registered')
+            if userexsist:
+                raise ValueError('Username / Email already registered')
           finally:
             db.close()
             return username
