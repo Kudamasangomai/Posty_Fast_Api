@@ -28,18 +28,25 @@ def register(request:schemas.User, db: Session = Depends(get_session)):
                 return user
           except IntegrityError:
                    db.rollback()
-                   raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username or email already registered")
+                   raise HTTPException(
+                         status_code=status.HTTP_400_BAD_REQUEST,
+                         detail="Username or email already registered")
           except Exception as e:
                 db.rollback()
-                raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"An error occurred: {str(e)}")
+                raise HTTPException(
+                      status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+                      detail=f"An error occurred: {str(e)}")
   
 
   
 @router.post("/login")
 def login(username:str,password:str, db: Session = Depends(get_session)):
-      usercheck = db.query(models.User).filter(models.User.username== username).first()
+      usercheck = db.query(models.User).filter(models.User.username== username ,
+                                               models.User.password == password).first()
       
       if not usercheck:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid username or password")
+        raise HTTPException(
+              status_code=status.HTTP_401_UNAUTHORIZED,
+             detail="Invalid username or password")
     
       return {"message": "Login successful"}

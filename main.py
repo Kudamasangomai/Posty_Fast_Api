@@ -1,11 +1,13 @@
 import auth
 import models
 import schemas
+import bcrypt
 from datetime import datetime
 from sqlalchemy.orm import Session
 from database import Base ,engine ,sessionLocal
-from fastapi.security import OAuth2PasswordBearer,HTTPBasic
 from fastapi import FastAPI , Depends,HTTPException ,status
+from fastapi.security import OAuth2PasswordBearer,HTTPBasic ,HTTPBasicCredentials
+from models import User
 
 # Create the database
 Base.metadata.create_all(engine)
@@ -37,18 +39,26 @@ def posts(db: Session = Depends(get_session)):
     posts = db.query(models.Post).all()
     return posts
 
-@app.get("/posts/{id}",dependencies= [Depends(security)], status_code=status.HTTP_200_OK ,tags=["Posts"]  )
-def post(id:int ,db: Session = Depends(get_session)):
-    post = db.query(models.Post).get(id)
+@app.get("/posts/{id}", status_code=status.HTTP_200_OK ,tags=["Posts"]  )
+def post(id:int ,credentials: HTTPBasicCredentials = Depends(security),db: Session = Depends(get_session)):
+    
+    user = authenticate_user(db, credentials.username, credentials.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Basic"},
+        )
 
+
+    post = db.query(models.Post).get(id)
     if post is None:
         raise HTTPException(status_code=404,detail="Post not Found")
     return post
 
 
 @app.post("/posts" ,status_code=status.HTTP_201_CREATED,tags=["Posts"])
-
-def store(request: schemas.Post, db: Session = Depends(get_session)):
+def store(request: schemas.Post,credentials: HTTPBasicCredentials = Depends(security), db: Session = Depends(get_session)):
     newpost = models.Post(post = request.post)
     db.add(newpost)
     db.commit()
@@ -82,12 +92,6 @@ def destory(id:int, db: Session = Depends(get_session)):
     db.close()
     return {"message": "Post was deleted successfully."}
 
-@app.get("/search/{search}" , tags=["Posts"])
-def search(search:str, db: Session = Depends(get_session)): 
-    searchresults = db.query(models.Post).filter(models.Post.post.contains(search)).all()
-    if searchresults:
-        return searchresults 
-    return {"message":"No results found"}
 
 @app.post("/posts/publish", tags=['Posts'])
 def publish_post(id:int , db : Session = Depends(get_session)):
@@ -105,6 +109,20 @@ def publish_post(id:int , db : Session = Depends(get_session)):
 async def like_post(id:int ,db: Session = Depends(get_session)):
     return {"liked button"}
 
+@app.get("/search/{search}" , tags=["Posts"])
+def search(search:str, db: Session = Depends(get_session)): 
+    searchresults = db.query(models.Post).filter(models.Post.post.contains(search)).all()
+    if searchresults:
+        return searchresults 
+    return {"message":"No results found"}
+
+
+
+def authenticate_user(db: Session, username: str,password:str):
+    user = db.query(User).filter(User.username == username).first()
+    if user and user.password == password:
+        return user  # Valid user
+    return None 
 
 @app.get("/users", tags=["Users"])
 async def users(db:  Session = Depends(get_session)):

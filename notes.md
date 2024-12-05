@@ -30,3 +30,5 @@ these are notes for my first api crud app With FAST API. i am just learning the 
 ## Authentication
 ### HTTP Basic Auth
 - the simplest way to authenticate using username and password
+- HTTPBasic Instance creates a security dependency that ensures clients provide a username   and password using HTTP  Basic Authentication.
+Depends(security) - This dependency injection ensures that each request checks for credentials and provides them to the route
