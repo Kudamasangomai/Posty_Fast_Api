@@ -1,5 +1,6 @@
 import models
 import schemas
+import bcrypt
 from database import sessionLocal
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends
@@ -15,12 +16,12 @@ def get_session():
         session.close()
 @router.post("/register")
 def register(request:schemas.User, db: Session = Depends(get_session)):
-          try:
+          try:                
                 user = models.User(
                       name = request.name ,
                       username = request.username ,
                       email = request.email,
-                      password = request.password ,
+                      password = bcrypt.hashpw(request.password.encode('utf-8'), bcrypt.gensalt())
                       )
                 db.add(user)
                 db.commit()
