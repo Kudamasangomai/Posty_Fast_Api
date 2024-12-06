@@ -1,4 +1,4 @@
-import auth
+import auth,user
 import models
 import schemas
 import bcrypt
@@ -8,6 +8,7 @@ from database import Base ,engine ,sessionLocal
 from fastapi import FastAPI , Depends,HTTPException ,status
 from fastapi.security import OAuth2PasswordBearer,HTTPBasic ,HTTPBasicCredentials
 from models import User
+from schemas import Userinfo
 
 # Create the database
 Base.metadata.create_all(engine)
@@ -32,6 +33,7 @@ app = FastAPI(
     # dependencies= [Depends(security)]  
 )
 app.include_router(auth.router)
+app.include_router(user.router)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 @app.get("/posts" ,tags=["Posts"])
@@ -124,10 +126,6 @@ def authenticate_user(db: Session, username: str,password:str):
         return user  # Valid user
     return None 
 
-@app.get("/users", tags=["Users"])
-async def users(db:  Session = Depends(get_session)):
-    users = db.query(models.User).all()
-    return users
 
 
      

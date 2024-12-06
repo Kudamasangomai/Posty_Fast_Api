@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.exc import IntegrityError
 from fastapi import FastAPI , Body , Depends ,Query ,HTTPException ,status
 
-router = APIRouter( prefix="/auth",  tags=["Auth"] )
+router = APIRouter(tags=["Auth"] )
 def get_session():
     session = sessionLocal()
     try:
@@ -39,15 +39,13 @@ def register(request:schemas.User, db: Session = Depends(get_session)):
                       detail=f"An error occurred: {str(e)}")
   
 
-  
 @router.post("/login")
 def login(username:str,password:str, db: Session = Depends(get_session)):
-      usercheck = db.query(models.User).filter(models.User.username== username ,
-                                               models.User.password == password).first()
+      usercheck = db.query(models.User).filter(models.User.username== username).first()
       
-      if not usercheck:
+      if not usercheck and bcrypt.checkpw(password.encode('utf-8'), usercheck.password.encode('utf-8')):
         raise HTTPException(
-              status_code=status.HTTP_401_UNAUTHORIZED,
+              status_code=status.HTTP_404_NOT_FOUND,
              detail="Invalid username or password")
     
       return {"message": "Login successful"}

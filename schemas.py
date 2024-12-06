@@ -41,3 +41,12 @@ class User(BaseModel):
 class Userlogin(BaseModel):
     username : str = Field(min_length=4)
     email: EmailStr
+
+
+class Userinfo(BaseModel):
+    id:int
+    email: EmailStr
+    username :str
+
+    class Config:
+        orm_mode = True
