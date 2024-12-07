@@ -5,15 +5,25 @@ from database import sessionLocal
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends
 from sqlalchemy.exc import IntegrityError
-from fastapi import FastAPI , Body , Depends ,Query ,HTTPException ,status
+from fastapi import Depends ,Query ,HTTPException ,status
+from models import User
+from fastapi.security import HTTPBasic ,HTTPBasicCredentials
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+security = HTTPBasic()
+
 
 router = APIRouter(tags=["Auth"] )
+
 def get_session():
     session = sessionLocal()
     try:
         yield session
     finally:
         session.close()
+
+
 @router.post("/register")
 def register(request:schemas.User, db: Session = Depends(get_session)):
           try:                
@@ -49,3 +59,11 @@ def login(username:str,password:str, db: Session = Depends(get_session)):
              detail="Invalid username or password")
     
       return {"message": "Login successful"}
+
+def authenticate_user(credentials :HTTPBasicCredentials = Depends(security),db: Session= Depends(get_session)):
+    user = db.query(User).filter(User.username == credentials.username).first()
+    if not user or not pwd_context.verify(credentials.password, user.password):
+        raise HTTPException(
+              status_code=status.HTTP_404_NOT_FOUND,
+             detail="Invalid username or password")
+    return user

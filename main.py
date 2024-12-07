@@ -34,6 +34,7 @@ app = FastAPI(
 )
 app.include_router(auth.router)
 app.include_router(user.router)
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 @app.get("/posts" ,tags=["Posts"])
@@ -43,19 +44,19 @@ def posts(db: Session = Depends(get_session)):
 
 @app.get("/posts/{id}", status_code=status.HTTP_200_OK ,tags=["Posts"]  )
 def post(id:int ,credentials: HTTPBasicCredentials = Depends(security),db: Session = Depends(get_session)):
-    
-    user = authenticate_user(db, credentials.username, credentials.password)
+    user = auth.authenticate_user(db, credentials.username, credentials.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Basic"},
         )
 
 
     post = db.query(models.Post).get(id)
     if post is None:
-        raise HTTPException(status_code=404,detail="Post not Found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Post not Found")
     return post
 
 
@@ -79,7 +80,9 @@ def update(id:int, request:schemas.Post, db: Session = Depends(get_session)):
 
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post Not Found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="Post Not Found")
     finally:
         db.close()
     
@@ -88,7 +91,9 @@ def update(id:int, request:schemas.Post, db: Session = Depends(get_session)):
 def destory(id:int, db: Session = Depends(get_session)):
     post = db.query(models.Post).get(id)
     if post is None:
-      raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post Not Found")
+      raise HTTPException(
+          status_code=status.HTTP_404_NOT_FOUND, 
+          detail="Post Not Found")
     db.delete(post)
     db.commit()
     db.close()
@@ -99,7 +104,9 @@ def destory(id:int, db: Session = Depends(get_session)):
 def publish_post(id:int , db : Session = Depends(get_session)):
         post = db.query(models.Post).get(id)
         if post is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post Not Found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                  detail="Post Not Found")
 
         post.published = not post.published
         db.commit()
@@ -120,12 +127,5 @@ def search(search:str, db: Session = Depends(get_session)):
 
 
 
-def authenticate_user(db: Session, username: str,password:str):
-    user = db.query(User).filter(User.username == username).first()
-    if user and user.password == password:
-        return user  # Valid user
-    return None 
 
 
-
-     

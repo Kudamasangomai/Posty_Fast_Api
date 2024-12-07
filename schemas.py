@@ -45,8 +45,8 @@ class Userlogin(BaseModel):
 
 class Userinfo(BaseModel):
     id:int
-    email: EmailStr
+    name :str
     username :str
-
+    email: EmailStr
     class Config:
         orm_mode = True
