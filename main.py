@@ -1,26 +1,16 @@
 import auth,user
 import models
 import schemas
-import bcrypt
 from datetime import datetime
+from database import get_session
 from sqlalchemy.orm import Session
-from database import Base ,engine ,sessionLocal
+from database import Base ,engine
 from fastapi import FastAPI , Depends,HTTPException ,status
 from fastapi.security import OAuth2PasswordBearer,HTTPBasic ,HTTPBasicCredentials
-from models import User
-from schemas import Userinfo
+
 
 # Create the database
 Base.metadata.create_all(engine)
-
-# Helper function to get the database session
-def get_session():
-    session = sessionLocal()
-    try:
-        yield session
-    finally:
-        session.close()
-
 security = HTTPBasic()
 
 # Initialize the application
@@ -62,7 +52,9 @@ def post(id:int ,credentials: HTTPBasicCredentials = Depends(security),db: Sessi
 
 @app.post("/posts" ,status_code=status.HTTP_201_CREATED,tags=["Posts"])
 def store(request: schemas.Post,credentials: HTTPBasicCredentials = Depends(security), db: Session = Depends(get_session)):
-    newpost = models.Post(post = request.post)
+    newpost = models.Post(
+        post = request.post
+        )
     db.add(newpost)
     db.commit()
     db.refresh(newpost)

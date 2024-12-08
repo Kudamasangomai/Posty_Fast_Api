@@ -1,6 +1,6 @@
-from sqlalchemy import Column ,Integer ,String ,Boolean ,DateTime ,func
 from database import Base
-from pydantic import BaseModel
+from sqlalchemy import Column ,Integer ,String ,Boolean ,DateTime ,func
+
 
 # Base is used for defining the structure of a database table at DB Level (SQLAlchemy model).
 # BaseModel is used for defining input/output data validation (Pydantic schema).
@@ -23,12 +23,3 @@ class User(Base):
     password = Column(String,nullable=False)
     created_at = Column(DateTime , default=func.now())
     updated_at = Column(DateTime , default=func.now())
-
-
-# Pydantic Model (Validation)
-# from pydantic import BaseModel
-
-# class UserCreate(BaseModel):
-#     name: str
-#     username: str
-#     email: str

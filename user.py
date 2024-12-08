@@ -1,28 +1,17 @@
 import models
-from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-from database import sessionLocal
-from schemas import Userinfo
-from fastapi import Depends, HTTPException ,status
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from starlette.status import HTTP_401_UNAUTHORIZED
 from models import User
+from schemas import Userinfo
+from database import get_session
+from sqlalchemy.orm import Session
 from auth import authenticate_user
-
-
+from fastapi import APIRouter, Depends
+from fastapi import Depends, HTTPException ,status
 
 router = APIRouter(prefix="/users" ,tags=["Users"] )
-def get_session():
-    session = sessionLocal()
-    try:
-        yield session
-    finally:
-        session.close()
 
         
 @router.get("/",response_model=list[Userinfo])
-async def users(db:  Session = Depends(get_session)):
+def users(db:  Session = Depends(get_session)):
     users = db.query(models.User).all()
     return users
 

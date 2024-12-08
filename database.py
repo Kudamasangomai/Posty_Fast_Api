@@ -20,3 +20,12 @@ Base =  declarative_base()
 #  bind=engine: Associates the session with the database connection (engine).
 # expire_on_commit=False: Prevents the session from expiring objects after committing, so you can continue using them after a commit.
 sessionLocal = sessionmaker(bind=engine,expire_on_commit=False)
+
+
+# Helper function to get the database session
+def get_session():
+    session = sessionLocal()
+    try:
+        yield session
+    finally:
+        session.close()
