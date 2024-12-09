@@ -1,6 +1,7 @@
 import auth,user
 import models
 import schemas
+from models import Post
 from datetime import datetime
 from database import get_session
 from sqlalchemy.orm import Session
@@ -29,7 +30,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 @app.get("/posts" ,tags=["Posts"])
 def posts(db: Session = Depends(get_session)):
-    posts = db.query(models.Post).all()
+    posts = db.query(models.Post).filter(Post.published== True).all()
     return posts
 
 @app.get("/posts/{id}", status_code=status.HTTP_200_OK ,tags=["Posts"]  )
