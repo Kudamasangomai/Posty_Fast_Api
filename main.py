@@ -54,6 +54,7 @@ def post(id:int ,credentials: HTTPBasicCredentials = Depends(security),db: Sessi
 @app.post("/posts" ,status_code=status.HTTP_201_CREATED,tags=["Posts"])
 def store(request: schemas.Post,credentials: HTTPBasicCredentials = Depends(security), db: Session = Depends(get_session)):
     newpost = models.Post(
+        title = request.title,
         post = request.post
         )
     db.add(newpost)

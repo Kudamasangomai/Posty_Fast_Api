@@ -4,6 +4,7 @@ from pydantic import (BaseModel,Field,EmailStr)
 #used for validation 
 
 class Post(BaseModel):
+    title:str = Field(min_length=5)
     post:str = Field(min_length = 3)
 
     

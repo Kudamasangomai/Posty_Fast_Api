@@ -8,6 +8,7 @@ class Post(Base):
     __tablename__ = 'posts'
 
     id = Column(Integer,primary_key=True)
+    title = Column(String(100), nullable=True)
     post = Column(String(255))
     published = Column(Boolean,default=False)
     created_at = Column(DateTime , default=func.now())
