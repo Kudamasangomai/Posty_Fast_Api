@@ -18,8 +18,8 @@ class User(Base):
 
     id = Column(Integer,primary_key=True)
     name = Column(String(255),nullable=False)
-    username = Column(String,nullable=False ,unique=True)
-    email = Column(String,nullable=False ,unique=True)
-    password = Column(String,nullable=False)
+    username = Column(String(255),nullable=False ,unique=True)
+    email = Column(String(255),nullable=False ,unique=True)
+    password = Column(String(255),nullable=False)
     created_at = Column(DateTime , default=func.now())
     updated_at = Column(DateTime , default=func.now())

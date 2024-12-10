@@ -9,8 +9,8 @@ DATABASE_URL = "mysql+pymysql://root@localhost:3306/fastapiblog"
 # Purpose: Connects to the database.
 # Parameters: "sqlite:///post.db": The database URL. 
 # In this case, it specifies a SQLite database file named post.db.
-engine = create_engine("sqlite:///post.db")
-# engine = create_engine(DATABASE_URL, echo=True)
+# engine = create_engine("sqlite:///post.db")
+engine = create_engine(DATABASE_URL, echo=True)
 
 
 # Purpose: Defines the base class for all your database models.
