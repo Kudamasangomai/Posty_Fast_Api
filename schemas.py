@@ -1,11 +1,21 @@
 from pydantic import (BaseModel,Field,EmailStr)
 
 # BaseModel is used for defining input/output data validation (Pydantic schema).
-#used for validation 
+# used for validation 
 
 class Post(BaseModel):
     title:str = Field(min_length=5)
     post:str = Field(min_length = 3)
+    # user_id:int
+
+class PostResponse(BaseModel):
+    id: int
+    title: str
+    post: str
+    user_name: str
+
+    class Config:
+        orm_mode = True
 
     
 class User(BaseModel):

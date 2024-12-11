@@ -6,6 +6,7 @@ from datetime import datetime
 from database import get_session
 from sqlalchemy.orm import Session
 from database import Base ,engine
+from sqlalchemy.orm import joinedload
 from fastapi import FastAPI , Depends,HTTPException ,status
 from fastapi.security import OAuth2PasswordBearer,HTTPBasic ,HTTPBasicCredentials
 
@@ -33,29 +34,46 @@ def posts(db: Session = Depends(get_session)):
     posts = db.query(models.Post).filter(Post.published== True).all()
     return posts
 
-@app.get("/posts/{id}", status_code=status.HTTP_200_OK ,tags=["Posts"]  )
+@app.get("/posts/{id}", status_code=status.HTTP_200_OK ,tags=["Posts"],response_model=schemas.PostResponse )
 def post(id:int ,credentials: HTTPBasicCredentials = Depends(security),db: Session = Depends(get_session)):
-    user = auth.authenticate_user(db, credentials.username, credentials.password)
+    user = auth.authenticate_user(credentials=credentials, db=db)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
         )
 
+    #eager load
+    post = db.query(Post).options(joinedload(Post.owner)).filter(Post.id == id).first()
 
-    post = db.query(models.Post).get(id)
+    # post = db.query(models.Post).get(id)
     if post is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Post not Found")
-    return post
+    post_response = schemas.PostResponse(
+        id=post.id,
+        title=post.title,
+        post=post.post,
+        published=post.published,
+        created_at=post.created_at.isoformat(),
+        updated_at=post.updated_at.isoformat(),
+        user_id=post.user_id,
+        user_name=post.owner.name  # Access the related user's name
+    )
+
+    return post_response
+    # return post
 
 
 @app.post("/posts" ,status_code=status.HTTP_201_CREATED,tags=["Posts"])
 def store(request: schemas.Post,credentials: HTTPBasicCredentials = Depends(security), db: Session = Depends(get_session)):
+    user = auth.authenticate_user(credentials, db)
+    print(user)
     newpost = models.Post(
         title = request.title,
-        post = request.post
+        post = request.post,
+        user_id=user.id
         )
     db.add(newpost)
     db.commit()

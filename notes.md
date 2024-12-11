@@ -26,6 +26,8 @@ these are notes for my first api crud app With FAST API. i am just learning the 
 - creating a migration ->  alembic revision --autogenerate -m "add_timestamps_columns_to_post_table"
 - running the migration -> alembic upgrade head
 
+## Relationships
+
 
 ## Authentication
 ### HTTP Basic Auth
