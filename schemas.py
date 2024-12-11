@@ -1,18 +1,22 @@
 from pydantic import (BaseModel,Field,EmailStr)
+from datetime import datetime
 
 # BaseModel is used for defining input/output data validation (Pydantic schema).
 # used for validation 
 
-class Post(BaseModel):
+class PostCreate(BaseModel):
     title:str = Field(min_length=5)
     post:str = Field(min_length = 3)
-    # user_id:int
+
+class PostUser(BaseModel):
+    name:str
 
 class PostResponse(BaseModel):
     id: int
     title: str
     post: str
-    user_name: str
+    created_at : datetime
+    user: PostUser # Nested Schema
 
     class Config:
         orm_mode = True

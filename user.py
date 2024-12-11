@@ -20,7 +20,7 @@ def current_user(user: User = Depends(authenticate_user)):
     return user
 
 @router.get("/{id}",response_model=Userinfo)
-def users(id:int ,db:  Session = Depends(get_session)):
+def users(id:int ,db:Session = Depends(get_session)):
     user = db.query(models.User).get(id)
 
     if user is None:

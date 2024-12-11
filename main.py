@@ -1,18 +1,18 @@
 import auth,user
-import models
-import schemas
 from models import Post
 from datetime import datetime
 from database import get_session
 from sqlalchemy.orm import Session
 from database import Base ,engine
 from sqlalchemy.orm import joinedload
+from schemas import PostCreate , PostResponse
 from fastapi import FastAPI , Depends,HTTPException ,status
 from fastapi.security import OAuth2PasswordBearer,HTTPBasic ,HTTPBasicCredentials
 
 
 # Create the database
 Base.metadata.create_all(engine)
+
 security = HTTPBasic()
 
 # Initialize the application
@@ -29,48 +29,29 @@ app.include_router(user.router)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-@app.get("/posts" ,tags=["Posts"])
+@app.get("/posts" ,status_code=status.HTTP_200_OK ,tags=["Posts"],response_model = list[PostResponse ])
 def posts(db: Session = Depends(get_session)):
-    posts = db.query(models.Post).filter(Post.published== True).all()
+    posts = db.query(Post).options(joinedload(Post.user)).filter(Post.published == True).all()
     return posts
 
-@app.get("/posts/{id}", status_code=status.HTTP_200_OK ,tags=["Posts"],response_model=schemas.PostResponse )
+@app.get("/posts/{id}", status_code=status.HTTP_200_OK ,tags=["Posts"],response_model = PostResponse )
 def post(id:int ,credentials: HTTPBasicCredentials = Depends(security),db: Session = Depends(get_session)):
-    user = auth.authenticate_user(credentials=credentials, db=db)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-        )
-
+    auth.authenticate_user(credentials=credentials, db=db)
+  
     #eager load
-    post = db.query(Post).options(joinedload(Post.owner)).filter(Post.id == id).first()
-
-    # post = db.query(models.Post).get(id)
+    post = db.query(Post).options(joinedload(Post.user)).filter(Post.id == id).first()
     if post is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Post not Found")
-    post_response = schemas.PostResponse(
-        id=post.id,
-        title=post.title,
-        post=post.post,
-        published=post.published,
-        created_at=post.created_at.isoformat(),
-        updated_at=post.updated_at.isoformat(),
-        user_id=post.user_id,
-        user_name=post.owner.name  # Access the related user's name
-    )
-
-    return post_response
-    # return post
+    return post
 
 
 @app.post("/posts" ,status_code=status.HTTP_201_CREATED,tags=["Posts"])
-def store(request: schemas.Post,credentials: HTTPBasicCredentials = Depends(security), db: Session = Depends(get_session)):
+def store(request: PostCreate ,credentials: HTTPBasicCredentials = Depends(security), db: Session = Depends(get_session)):
     user = auth.authenticate_user(credentials, db)
     print(user)
-    newpost = models.Post(
+    newpost = Post(
         title = request.title,
         post = request.post,
         user_id=user.id
@@ -82,11 +63,22 @@ def store(request: schemas.Post,credentials: HTTPBasicCredentials = Depends(secu
 
 
 @app.put("/posts/{id}" ,tags=["Posts"])
-def update(id:int, request:schemas.Post, db: Session = Depends(get_session)):
-    try:
-       postobj = db.query(models.Post).filter_by(id=id).first()
-       postobj.post = request.post
-       postobj.updated_at = datetime.now()
+def update(id:int, request:PostCreate,  credentials: HTTPBasicCredentials = Depends(security), db: Session = Depends(get_session)):
+    user = auth.authenticate_user(credentials=credentials, db=db)
+    postobj = db.query(Post).filter_by(id=id).first()
+
+    # Check if the authenticated user is the owner of the post
+    # so i can create a depedency for this right 
+    if postobj.user_id != user.id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="You are not the owner of this post"
+        )
+    postobj.post = request.post
+    postobj.title = request.title
+    postobj.updated_at = datetime.now()
+    try:    
+       
        db.commit()
        return postobj
 
@@ -101,7 +93,7 @@ def update(id:int, request:schemas.Post, db: Session = Depends(get_session)):
 
 @app.delete("/posts/{id}" ,tags=["Posts"])
 def destory(id:int, db: Session = Depends(get_session)):
-    post = db.query(models.Post).get(id)
+    post = db.query(Post).get(id)
     if post is None:
       raise HTTPException(
           status_code=status.HTTP_404_NOT_FOUND, 
@@ -113,8 +105,8 @@ def destory(id:int, db: Session = Depends(get_session)):
 
 
 @app.post("/posts/publish", tags=['Posts'])
-def publish_post(id:int , db : Session = Depends(get_session)):
-        post = db.query(models.Post).get(id)
+def publish_post(id:int ,credentials: HTTPBasicCredentials = Depends(security), db : Session = Depends(get_session)):
+        post = db.query(Post).get(id)
         if post is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -127,12 +119,12 @@ def publish_post(id:int , db : Session = Depends(get_session)):
 
 
 @app.post("/posts/likepost" ,tags=['Posts'])
-async def like_post(id:int ,db: Session = Depends(get_session)):
+async def like_post(id:int ,credentials: HTTPBasicCredentials = Depends(security),db: Session = Depends(get_session)):
     return {"liked button"}
 
 @app.get("/search/{search}" , tags=["Posts"])
 def search(search:str, db: Session = Depends(get_session)): 
-    searchresults = db.query(models.Post).filter(models.Post.post.contains(search)).all()
+    searchresults = db.query(Post).filter(Post.post.contains(search)).all()
     if searchresults:
         return searchresults 
     return {"message":"No results found"}

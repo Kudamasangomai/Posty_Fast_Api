@@ -56,5 +56,5 @@ def authenticate_user(credentials :HTTPBasicCredentials = Depends(security),db: 
     if not user or not pwd_context.verify(credentials.password, user.password):
         raise HTTPException(
               status_code=status.HTTP_404_NOT_FOUND,
-             detail="User Not Found")
+               detail="User not found or incorrect password")
     return user

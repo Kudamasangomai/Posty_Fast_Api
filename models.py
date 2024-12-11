@@ -16,7 +16,7 @@ class Post(Base):
     created_at = Column(DateTime , default=func.now())
     updated_at = Column(DateTime , default=func.now())
 
-    owner = relationship("User" ,back_populates="posts")
+    user = relationship("User" ,back_populates="posts")
 
 class User(Base):
     __tablename__ = 'users'
@@ -29,4 +29,4 @@ class User(Base):
     created_at = Column(DateTime , default=func.now())
     updated_at = Column(DateTime , default=func.now())
 
-    posts = relationship("Post", back_populates="owner")
+    posts = relationship("Post", back_populates="user")
