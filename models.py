@@ -14,7 +14,7 @@ class Post(Base):
     user_id = Column(Integer,ForeignKey("users.id") ,nullable=False)
     published = Column(Boolean,default=False)
     created_at = Column(DateTime , default=func.now())
-    updated_at = Column(DateTime , default=func.now())
+    updated_at = Column(DateTime , default=func.now() ,onupdate=func.now())
 
     user = relationship("User" ,back_populates="posts")
 

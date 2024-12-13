@@ -51,10 +51,14 @@ def login(username:str,password:str, db: Session = Depends(get_session)):
     
       return {"message": "Login successful"}
 
-def authenticate_user(credentials :HTTPBasicCredentials = Depends(security),db: Session= Depends(get_session)):
+def authenticate_user(credentials :HTTPBasicCredentials,db: Session= Depends(get_session)):
     user = db.query(User).filter(User.username == credentials.username).first()
     if not user or not pwd_context.verify(credentials.password, user.password):
         raise HTTPException(
               status_code=status.HTTP_404_NOT_FOUND,
-               detail="User not found or incorrect password")
+               detail="User not found or incorrect credentials")
     return user
+
+#dependency
+def get_auth_user(credentials :HTTPBasicCredentials = Depends(security),db: Session= Depends(get_session)):
+      return authenticate_user(credentials,db)

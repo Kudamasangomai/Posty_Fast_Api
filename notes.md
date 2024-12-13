@@ -1,4 +1,4 @@
-### Fast API 
+# Fast API 
 these are notes for my first api crud app With FAST API. i am just learning the basics
 
 -  pip install fastapi uvicorn 
@@ -28,8 +28,22 @@ these are notes for my first api crud app With FAST API. i am just learning the 
 
 ## Relationships
 
+### relationships between User and Post models
+
+This is a one-to-many relationship, meaning one User can have multiple Post
+back_populates="posts": This creates a bidirectional relationship between post and user
+
+### In Post model:
+- user = relationship("User" ,back_populates="posts")
+
+### In User Model
+- posts = relationship("Post", back_populates="user")
+
+
+
 
 ## Authentication
+
 ### HTTP Basic Auth
 - the simplest way to authenticate using username and password
 - HTTPBasic Instance creates a security dependency that ensures clients provide a username   and password using HTTP  Basic Authentication.

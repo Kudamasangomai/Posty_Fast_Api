@@ -3,20 +3,27 @@ from datetime import datetime
 
 # BaseModel is used for defining input/output data validation (Pydantic schema).
 # used for validation 
-
+class Userinfo(BaseModel):
+    id:int
+    name :str
+    username :str
+    email: EmailStr
+    class Config:
+        orm_mode = True
 class PostCreate(BaseModel):
     title:str = Field(min_length=5)
     post:str = Field(min_length = 3)
 
-class PostUser(BaseModel):
-    name:str
+class PostUpdate(BaseModel):
+    title:str = Field(min_length=5)
+    post:str = Field(min_length = 3)
 
 class PostResponse(BaseModel):
     id: int
     title: str
     post: str
     created_at : datetime
-    user: PostUser # Nested Schema
+    user: Userinfo
 
     class Config:
         orm_mode = True
@@ -33,10 +40,3 @@ class UserloginRequest(BaseModel):
     email: EmailStr
 
 
-class Userinfo(BaseModel):
-    id:int
-    name :str
-    username :str
-    email: EmailStr
-    class Config:
-        orm_mode = True
