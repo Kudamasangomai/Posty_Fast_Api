@@ -1,6 +1,6 @@
 import auth,user
 from auth import get_auth_user
-from models import Post ,User
+from models import Post ,User ,Like
 from database import get_session
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import joinedload
@@ -22,16 +22,19 @@ def is_owner(postid:int ,  db: Session = Depends(get_session),user: User = Depen
           raise HTTPException(status_code=403, detail="Not authorized to access this post")
       return post
 
+
 @router.get("/" ,status_code=status.HTTP_200_OK ,response_model = list[PostResponse ])
 def posts(db: Session = Depends(get_session)):
     posts = db.query(Post).options(joinedload(Post.user)).filter(Post.published == True).all()
     return posts
 
+
 @router.get("/{id}", status_code=status.HTTP_200_OK ,response_model = PostResponse )
 def post(id:int ,user: User = Depends(auth.get_auth_user),db: Session = Depends(get_session)):
 
     #eager load
-    post = db.query(Post).options(joinedload(Post.user)).filter(Post.id == id).first()
+    post = db.query(Post).options(joinedload(Post.user),joinedload(Post.likes)).filter(Post.id == id).first()
+    print(post)
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Post not Found")
     return post
@@ -57,14 +60,12 @@ def update(request:PostUpdate ,post:Post = Depends(is_owner), db: Session = Depe
     post.title = request.title
     db.commit()
     return post
-
  
 @router.delete("/{id}",status_code=status.HTTP_204_NO_CONTENT )
 def destory(post: Post =Depends(is_owner), db: Session = Depends(get_session)):
     db.delete(post)
     db.commit()
     return {"message": "Post was deleted successfully."}
-
 
 @router.post("/publish/{id}")
 def publish_post(post:Post = Depends(is_owner), db : Session = Depends(get_session)):
@@ -77,8 +78,17 @@ def publish_post(post:Post = Depends(is_owner), db : Session = Depends(get_sessi
 
 
 @router.post("/likepost/{id}" )
-async def like_post(id:int ,user: User = Depends(auth.get_auth_user),db: Session = Depends(get_session)):
+def like_post(id:int ,user: User = Depends(auth.get_auth_user),db: Session = Depends(get_session)):
+    post = db.query(Post).filter(Post.id == id).first()
+    likedpost = Like(
+        user_id= user.id,
+        post_id = post.id
+        )
+    db.add(likedpost)
+    db.commit()
+    db.refresh(likedpost)
     return {"liked button"}
+
 
 @router.get("/search/{search}",response_model=list[PostResponse])
 def search(search:str, db: Session = Depends(get_session)): 
@@ -86,3 +96,8 @@ def search(search:str, db: Session = Depends(get_session)):
     if searchresults:
         return searchresults 
     return {"message":"No results found"}
+
+
+@router.post("/comment/{id}")
+def comment_post(id:int ,user: User = Depends(auth.get_auth_user),db: Session = Depends(get_session)):
+    return user

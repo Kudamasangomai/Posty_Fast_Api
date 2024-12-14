@@ -17,6 +17,7 @@ class Post(Base):
     updated_at = Column(DateTime , default=func.now() ,onupdate=func.now())
 
     user = relationship("User" ,back_populates="posts")
+    likes = relationship("Like", back_populates="post")  # Post <-> Like relationship
 
 class User(Base):
     __tablename__ = 'users'
@@ -30,3 +31,14 @@ class User(Base):
     updated_at = Column(DateTime , default=func.now())
 
     posts = relationship("Post", back_populates="user")
+
+
+class Like(Base):
+    __tablename__ = 'likes'
+
+    id = Column(Integer, primary_key=True)
+    post_id = Column(Integer,ForeignKey("posts.id"),nullable=False)
+    user_id = Column(Integer,ForeignKey("users.id"),nullable=False)
+    created_at = Column(DateTime , default=func.now())
+
+    post = relationship("Post", back_populates="likes")  # Like <-> Post relationship
