@@ -1,12 +1,12 @@
-import auth,user
+import auth
 from auth import get_auth_user
-from models import Post ,User ,Like
 from database import get_session
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import joinedload
-from fastapi.security import HTTPBasic
-from schemas import PostCreate,PostUpdate , PostResponse
+from models import Post ,User ,Like ,Comment
 from fastapi import APIRouter , Depends,HTTPException ,status
+from schemas import PostCreate,PostUpdate , PostResponse , CommentCreate
+
 
 
 router = APIRouter(prefix="/posts" ,tags=["Posts"] )
@@ -25,7 +25,10 @@ def is_owner(postid:int ,  db: Session = Depends(get_session),user: User = Depen
 
 @router.get("/" ,status_code=status.HTTP_200_OK ,response_model = list[PostResponse ])
 def posts(db: Session = Depends(get_session)):
-    posts = db.query(Post).options(joinedload(Post.user)).filter(Post.published == True).all()
+    posts = db.query(Post).options(
+                            joinedload(Post.user),
+                            joinedload(Post.comments)
+                            ).filter(Post.published == True).all()
     return posts
 
 
@@ -33,8 +36,11 @@ def posts(db: Session = Depends(get_session)):
 def post(id:int ,user: User = Depends(auth.get_auth_user),db: Session = Depends(get_session)):
 
     #eager load
-    post = db.query(Post).options(joinedload(Post.user),joinedload(Post.likes)).filter(Post.id == id).first()
-    print(post)
+    post = db.query(Post).options(
+                        joinedload(Post.user),
+                        joinedload(Post.likes)
+                        ).filter(Post.id == id).first()
+ 
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Post not Found")
     return post
@@ -44,9 +50,7 @@ def post(id:int ,user: User = Depends(auth.get_auth_user),db: Session = Depends(
 def store(request: PostCreate ,user: User = Depends(auth.get_auth_user), db: Session = Depends(get_session)):
 
     newpost = Post(
-        title = request.title,
-        post = request.post,
-        user_id=user.id
+        title = request.title, post = request.post, user_id=user.id
         )
     db.add(newpost)
     db.commit()
@@ -69,12 +73,12 @@ def destory(post: Post =Depends(is_owner), db: Session = Depends(get_session)):
 
 @router.post("/publish/{id}")
 def publish_post(post:Post = Depends(is_owner), db : Session = Depends(get_session)):
-
-        post.published = not post.published
-        db.commit()
-        db.refresh(post)
-        message = "Post published successfully" if post.published else "Post unpublished successfully"
-        return {"message": message}
+        
+    post.published = not post.published
+    db.commit()
+    db.refresh(post)
+    message = "Post published successfully" if post.published else "Post unpublished successfully"
+    return {"message": message}
 
 
 @router.post("/likepost/{id}" )
@@ -87,7 +91,7 @@ def like_post(id:int ,user: User = Depends(auth.get_auth_user),db: Session = Dep
     db.add(likedpost)
     db.commit()
     db.refresh(likedpost)
-    return {"liked button"}
+    return {"message": "Post liked successfully"}
 
 
 @router.get("/search/{search}",response_model=list[PostResponse])
@@ -99,5 +103,13 @@ def search(search:str, db: Session = Depends(get_session)):
 
 
 @router.post("/comment/{id}")
-def comment_post(id:int ,user: User = Depends(auth.get_auth_user),db: Session = Depends(get_session)):
-    return user
+def comment_post(id:int ,request :CommentCreate ,user: User = Depends(auth.get_auth_user),db: Session = Depends(get_session)):
+    post = db.query(Post).filter(Post.id == id).first()
+    comment = Comment(
+        user_id= user.id, post_id = post.id, comment = request.comment
+        )
+    db.add(comment)
+    db.commit()
+    db.refresh(comment)
+    return {"message": "Comment Saved"}
+    

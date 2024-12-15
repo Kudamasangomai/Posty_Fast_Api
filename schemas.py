@@ -9,18 +9,31 @@ class Userinfo(BaseModel):
     name :str
     username :str
     email: EmailStr
+
     class Config:
         orm_mode = True
+
+
 class PostCreate(BaseModel):
     title:str = Field(min_length=5)
     post:str = Field(min_length = 3)
+
 
 class PostUpdate(BaseModel):
     title:str = Field(min_length=5)
     post:str = Field(min_length = 3)
 
-class Like(BaseModel):
-    int: int
+class LikeResponse(BaseModel):
+    # id: int
+    user: Userinfo
+    # created_at: datetime
+
+class CommentCreate(BaseModel):
+    comment :str = Field(min_length=1)
+
+class CommentResponse(BaseModel):
+    user :Userinfo
+    comment : str
 
 class PostResponse(BaseModel):
     id: int
@@ -28,7 +41,10 @@ class PostResponse(BaseModel):
     post: str
     created_at : datetime
     user: Userinfo
-    likes: List[Like]
+    likes: list[LikeResponse] 
+    comments :list[CommentResponse]
+    # likes_count: int  
+    
 
     class Config:
         orm_mode = True
