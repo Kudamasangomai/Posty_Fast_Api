@@ -11,14 +11,14 @@ class Post(Base):
     id = Column(Integer,primary_key=True)
     title = Column(String(100), nullable=True)
     post = Column(String(255))
-    user_id = Column(Integer,ForeignKey("users.id") ,nullable=False)
+    user_id = Column(Integer,ForeignKey("users.id" , ondelete="CASCADE"), nullable=False)
     published = Column(Boolean,default=False)
     created_at = Column(DateTime , default=func.now())
     updated_at = Column(DateTime , default=func.now() ,onupdate=func.now())
 
     user = relationship("User" ,back_populates="posts")
-    likes = relationship("Like", back_populates="post")  # Post <-> Like relationship
-    comments = relationship("Comment" ,back_populates="post")
+    likes = relationship("Like", back_populates="posts" ,passive_deletes=True)  # Post <-> Like relationship
+    comments = relationship("Comment" ,back_populates="posts" ,passive_deletes=True)
 
 class User(Base):
     __tablename__ = 'users'
@@ -31,9 +31,9 @@ class User(Base):
     created_at = Column(DateTime , default=func.now())
     updated_at = Column(DateTime , default=func.now())
 
-    posts = relationship("Post", back_populates="user")
+    posts = relationship("Post", back_populates="user",passive_deletes=True)
     likes = relationship("Like", back_populates="user")
-    comments = relationship("Comment", back_populates="user")
+    comments = relationship("Comment", back_populates="user",passive_deletes=True)
     
    
 
@@ -41,21 +41,21 @@ class Like(Base):
     __tablename__ = 'likes'
 
     id = Column(Integer, primary_key=True)
-    post_id = Column(Integer,ForeignKey("posts.id"),nullable=False)
-    user_id = Column(Integer,ForeignKey("users.id"),nullable=False)
+    post_id = Column(Integer,ForeignKey("posts.id" ,ondelete="CASCADE"),nullable=False)
+    user_id = Column(Integer,ForeignKey("users.id" ,ondelete="CASCADE"),nullable=False)
     created_at = Column(DateTime , default=func.now())
 
-    post = relationship("Post", back_populates="likes") 
+    posts = relationship("Post", back_populates="likes") 
     user = relationship("User" ,back_populates="likes")
 
 class Comment(Base):
     __tablename__ = 'comments'
 
     id = Column(Integer, primary_key=True)
-    post_id = Column(Integer,ForeignKey("posts.id"),nullable=False)
-    user_id = Column(Integer,ForeignKey("users.id"),nullable=False)
+    post_id = Column(Integer,ForeignKey("posts.id" , ondelete="CASCADE") , nullable=False)
+    user_id = Column(Integer,ForeignKey("users.id" , ondelete="CASCADE") ,nullable=False)
     comment = Column(String(255))
     created_at = Column(DateTime , default=func.now())
 
-    post = relationship("Post", back_populates="comments") 
+    posts = relationship("Post", back_populates="comments") 
     user = relationship("User" ,back_populates="comments")

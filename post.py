@@ -23,7 +23,7 @@ def is_owner(postid:int ,  db: Session = Depends(get_session),user: User = Depen
       return post
 
 
-@router.get("/" ,status_code=status.HTTP_200_OK ,response_model = list[PostResponse ])
+@router.get("/" ,status_code=status.HTTP_200_OK ,response_model = list[PostResponse ] ,summary="Get All Posts")
 def posts(db: Session = Depends(get_session)):
     posts = db.query(Post).options(
                             joinedload(Post.user),
@@ -32,7 +32,7 @@ def posts(db: Session = Depends(get_session)):
     return posts
 
 
-@router.get("/{id}", status_code=status.HTTP_200_OK ,response_model = PostResponse )
+@router.get("/{id}", status_code=status.HTTP_200_OK ,response_model = PostResponse,summary="Get Single Post" )
 def post(id:int ,user: User = Depends(auth.get_auth_user),db: Session = Depends(get_session)):
 
     #eager load
@@ -46,7 +46,7 @@ def post(id:int ,user: User = Depends(auth.get_auth_user),db: Session = Depends(
     return post
 
 
-@router.post("/" ,status_code=status.HTTP_201_CREATED)
+@router.post("/" ,status_code=status.HTTP_201_CREATED , summary="Create A Post")
 def store(request: PostCreate ,user: User = Depends(auth.get_auth_user), db: Session = Depends(get_session)):
 
     newpost = Post(
@@ -58,20 +58,20 @@ def store(request: PostCreate ,user: User = Depends(auth.get_auth_user), db: Ses
     return newpost
 
 
-@router.put("/{id}",response_model=PostResponse)
+@router.put("/{id}",response_model=PostResponse,summary="Update A Post")
 def update(request:PostUpdate ,post:Post = Depends(is_owner), db: Session = Depends(get_session)): 
     post.post = request.post
     post.title = request.title
     db.commit()
     return post
  
-@router.delete("/{id}",status_code=status.HTTP_204_NO_CONTENT )
+@router.delete("/{id}",status_code=status.HTTP_204_NO_CONTENT,summary="Delete A Post" )
 def destory(post: Post =Depends(is_owner), db: Session = Depends(get_session)):
     db.delete(post)
     db.commit()
     return {"message": "Post was deleted successfully."}
 
-@router.post("/publish/{id}")
+@router.post("/publish/{id}" ,summary="Publish A Post")
 def publish_post(post:Post = Depends(is_owner), db : Session = Depends(get_session)):
         
     post.published = not post.published
