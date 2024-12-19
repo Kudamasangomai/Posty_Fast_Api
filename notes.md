@@ -38,6 +38,11 @@ back_populates="posts": This creates a bidirectional relationship between post a
 
 ### In User Model
 - posts = relationship("Post", back_populates="user")
+- profile = relationship("Profile", back_populates="user", uselist=False)
+
+### In Profile Model
+-  one to one with User Model
+-  user = relationship("User", back_populates="profile")
 
 
 
@@ -46,5 +51,5 @@ back_populates="posts": This creates a bidirectional relationship between post a
 
 ### HTTP Basic Auth
 - the simplest way to authenticate using username and password
-- HTTPBasic Instance creates a security dependency that ensures clients provide a username   and password using HTTP  Basic Authentication.
+- HTTPBasic Instance creates a security dependency that ensures clients provide a username     and password using HTTP  Basic Authentication.
 Depends(security) - This dependency injection ensures that each request checks for credentials and provides them to the route

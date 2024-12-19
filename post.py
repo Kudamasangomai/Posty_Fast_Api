@@ -1,4 +1,5 @@
 import auth
+from sqlalchemy.sql import func
 from auth import get_auth_user
 from database import get_session
 from sqlalchemy.orm import Session
@@ -11,7 +12,7 @@ from schemas import PostCreate,PostUpdate , PostResponse , CommentCreate
 
 router = APIRouter(prefix="/posts" ,tags=["Posts"] )
 
-#dependency check if user is authenticated and authorized to take certain action
+#dependency check if user is authenticated and authorized to take acction on Post Model
 def is_owner(postid:int ,  db: Session = Depends(get_session),user: User = Depends(get_auth_user)):
       post = db.query(Post).filter(Post.id == postid).first()
 
@@ -71,7 +72,7 @@ def destory(post: Post =Depends(is_owner), db: Session = Depends(get_session)):
     db.commit()
     return {"message": "Post was deleted successfully."}
 
-@router.post("/publish/{id}" ,summary="Publish A Post")
+@router.post("/{id}/publish" ,summary="Publish A Post")
 def publish_post(post:Post = Depends(is_owner), db : Session = Depends(get_session)):
         
     post.published = not post.published
@@ -81,7 +82,7 @@ def publish_post(post:Post = Depends(is_owner), db : Session = Depends(get_sessi
     return {"message": message}
 
 
-@router.post("/likepost/{id}" )
+@router.post("/{id}/likepost",summary="Like A Post" )
 def like_post(id:int ,user: User = Depends(auth.get_auth_user),db: Session = Depends(get_session)):
     post = db.query(Post).filter(Post.id == id).first()
     likedpost = Like(
@@ -102,7 +103,7 @@ def search(search:str, db: Session = Depends(get_session)):
     return {"message":"No results found"}
 
 
-@router.post("/comment/{id}")
+@router.post("/{id}/comment")
 def comment_post(id:int ,request :CommentCreate ,user: User = Depends(auth.get_auth_user),db: Session = Depends(get_session)):
     post = db.query(Post).filter(Post.id == id).first()
     comment = Comment(
