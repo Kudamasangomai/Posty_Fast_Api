@@ -47,11 +47,11 @@ def post(id:int ,user: User = Depends(auth.get_auth_user),db: Session = Depends(
     return post
 
 
-@router.post("/" ,status_code=status.HTTP_201_CREATED , summary="Create A Post")
+@router.post("/" ,status_code=status.HTTP_201_CREATED ,response_model = PostResponse, summary="Create A Post")
 def store(request: PostCreate ,user: User = Depends(auth.get_auth_user), db: Session = Depends(get_session)):
 
     newpost = Post(
-        title = request.title, post = request.post, user_id=user.id
+        **request.model_dump(), user_id=user.id
         )
     db.add(newpost)
     db.commit()
