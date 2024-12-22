@@ -1,18 +1,20 @@
 import auth
-from sqlalchemy.sql import func
+from typing import Optional
 from auth import get_auth_user
+from sqlalchemy.sql import func
 from database import get_session
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import joinedload
 from models import Post ,User ,Like ,Comment
-from fastapi import APIRouter , Depends,HTTPException ,status
 from schemas import PostCreate,PostUpdate , PostResponse , CommentCreate
+from fastapi import APIRouter , Depends,HTTPException ,status,UploadFile,File
+
 
 
 
 router = APIRouter(prefix="/posts" ,tags=["Posts"] )
 
-#dependency check if user is authenticated and authorized to take acction on Post Model
+#dependency check if user is authenticated and authorized(is the owner) to take acction on Post Model
 def is_owner(postid:int ,  db: Session = Depends(get_session),user: User = Depends(get_auth_user)):
       post = db.query(Post).filter(Post.id == postid).first()
 
@@ -35,9 +37,8 @@ def posts(db: Session = Depends(get_session)):
 
 @router.get("/{id}", status_code=status.HTTP_200_OK ,response_model = PostResponse,summary="Get Single Post" )
 def post(id:int ,user: User = Depends(auth.get_auth_user),db: Session = Depends(get_session)):
-
-    #eager load
     post = db.query(Post).options(
+                        #eager load
                         joinedload(Post.user),
                         joinedload(Post.likes)
                         ).filter(Post.id == id).first()
@@ -48,11 +49,11 @@ def post(id:int ,user: User = Depends(auth.get_auth_user),db: Session = Depends(
 
 
 @router.post("/" ,status_code=status.HTTP_201_CREATED ,response_model = PostResponse, summary="Create A Post")
-def store(request: PostCreate ,user: User = Depends(auth.get_auth_user), db: Session = Depends(get_session)):
+def store( request: PostCreate,
+           user: User = Depends(auth.get_auth_user),
+           db: Session = Depends(get_session)):
 
-    newpost = Post(
-        **request.model_dump(), user_id=user.id
-        )
+    newpost = Post( **request.model_dump(),user_id=user.id)
     db.add(newpost)
     db.commit()
     db.refresh(newpost)
@@ -70,7 +71,7 @@ def update(request:PostUpdate ,post:Post = Depends(is_owner), db: Session = Depe
 def destory(post: Post =Depends(is_owner), db: Session = Depends(get_session)):
     db.delete(post)
     db.commit()
-    return {"message": "Post was deleted successfully."}
+    return "Post was deleted successfully"
 
 @router.post("/{id}/publish" ,summary="Publish A Post")
 def publish_post(post:Post = Depends(is_owner), db : Session = Depends(get_session)):

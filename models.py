@@ -17,7 +17,7 @@ class Post(Base):
     updated_at = Column(DateTime , default=func.now() ,onupdate=func.now())
 
     user = relationship("User" ,back_populates="posts")
-    likes = relationship("Like", back_populates="posts" ,passive_deletes=True)  # Post <-> Like relationship
+    likes = relationship("Like", back_populates="posts" ,passive_deletes=True)
     comments = relationship("Comment" ,back_populates="posts" ,passive_deletes=True)
 
 class User(Base):

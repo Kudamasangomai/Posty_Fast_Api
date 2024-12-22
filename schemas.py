@@ -1,6 +1,6 @@
 from pydantic import (BaseModel,Field,EmailStr)
 from datetime import datetime
-from typing import List
+from typing import List,Optional
 
 # BaseModel is used for defining input/output data validation (Pydantic schema).
 # used for validation 
@@ -22,11 +22,11 @@ class PostCreate(BaseModel):
 class PostUpdate(BaseModel):
     title:str = Field(min_length=5)
     post:str = Field(min_length = 3)
+  
 
 class LikeResponse(BaseModel):
     # id: int
     user: Userinfo
-    # created_at: datetime
 
 class CommentCreate(BaseModel):
     comment :str = Field(min_length=1)
@@ -42,9 +42,7 @@ class PostResponse(BaseModel):
     created_at : datetime
     user: Userinfo
     likes: list[LikeResponse] 
-    comments :list[CommentResponse]
-    # likes_count: int  
-    
+    comments :list[CommentResponse]   
 
     class Config:
         orm_mode = True
@@ -59,4 +57,3 @@ class User(BaseModel):
 class UserloginRequest(BaseModel):
     username : str = Field(min_length=4)
     email: EmailStr
-
