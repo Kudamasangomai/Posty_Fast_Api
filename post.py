@@ -40,11 +40,19 @@ def post(id:int ,user: User = Depends(auth.get_auth_user),db: Session = Depends(
     post = db.query(Post).options(
                         #eager load
                         joinedload(Post.user),
-                        joinedload(Post.likes)
+                        joinedload(Post.likes),
+                        joinedload(Post.comments)
                         ).filter(Post.id == id).first()
  
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Post not Found")
+    
+    likes_count = db.query(Like).filter(Like.post_id == id).count()
+    comments_count = db.query(Comment).filter(Comment.post_id == id).count()
+
+    post = post.__dict__
+    post['likes_count'] = likes_count
+    post['comments_count'] = comments_count
     return post
 
 

@@ -42,7 +42,9 @@ class PostResponse(BaseModel):
     created_at : datetime
     user: Userinfo
     likes: list[LikeResponse] 
-    comments :list[CommentResponse]   
+    comments: Optional[List[CommentResponse]] = [] 
+    likes_count: int
+    comments_count: int  
 
     class Config:
         orm_mode = True
