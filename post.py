@@ -32,6 +32,12 @@ def posts(db: Session = Depends(get_session)):
                             joinedload(Post.user),
                             joinedload(Post.comments)
                             ).filter(Post.published == True).all()
+    
+    # I hope there is a better way than this
+    for post in posts:
+        post.likes_count = db.query(Like).filter(Like.post_id == post.id).count()
+        post.comments_count = db.query(Comment).filter(Comment.post_id == post.id).count()
+
     return posts
 
 
@@ -81,9 +87,9 @@ def destory(post: Post =Depends(is_owner), db: Session = Depends(get_session)):
     db.commit()
     return "Post was deleted successfully"
 
+
 @router.post("/{id}/publish" ,summary="Publish A Post")
 def publish_post(post:Post = Depends(is_owner), db : Session = Depends(get_session)):
-        
     post.published = not post.published
     db.commit()
     db.refresh(post)
