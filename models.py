@@ -12,7 +12,7 @@ class Post(Base):
     title = Column(String(100), nullable=True)
     post = Column(String(255))
     user_id = Column(Integer,ForeignKey("users.id" , ondelete="CASCADE"), nullable=False)
-    published = Column(Boolean,default=False)
+    published = Column(Boolean,default=True)
     created_at = Column(DateTime , default=func.now())
     updated_at = Column(DateTime , default=func.now() ,onupdate=func.now())
 

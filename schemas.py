@@ -43,8 +43,8 @@ class PostResponse(BaseModel):
     user: Userinfo
     likes: list[LikeResponse] 
     comments: Optional[List[CommentResponse]] = [] 
-    likes_count: int
-    comments_count: int  
+    likes_count: int = 0
+    comments_count: int = 0
 
     class Config:
         orm_mode = True
@@ -52,10 +52,10 @@ class PostResponse(BaseModel):
     
 class User(BaseModel):
     name: str = Field(min_length=5)
-    username : str = Field(min_length=4)
+    username : str = Field(min_length=3)
     email: EmailStr
     password: str = Field(min_length=3)
 
 class UserloginRequest(BaseModel):
-    username : str = Field(min_length=4)
+    username : str = Field(min_length=3)
     email: EmailStr
