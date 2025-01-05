@@ -46,8 +46,8 @@ def login(username:str,password:str, db: Session = Depends(get_session)):
       
       if not usercheck and bcrypt.checkpw(password.encode('utf-8'), usercheck.password.encode('utf-8')):
         raise HTTPException(
-              status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-             detail="Invalid username or password")
+              status_code=status.HTTP_401_UNAUTHORIZED,
+             detail="Invalid credentials")
     
       return {"message": "Login successful"}
 
@@ -55,8 +55,8 @@ def authenticate_user(credentials :HTTPBasicCredentials,db: Session= Depends(get
     user = db.query(User).filter(User.username == credentials.username).first()
     if not user or not pwd_context.verify(credentials.password, user.password):
         raise HTTPException(
-              status_code=status.HTTP_404_NOT_FOUND,
-               detail="User not found or incorrect credentials")
+              status_code=status.HTTP_401_UNAUTHORIZED,
+               detail="Invalid credentials")
     return user
 
 #dependency

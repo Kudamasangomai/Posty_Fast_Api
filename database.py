@@ -4,7 +4,9 @@ from sqlalchemy.orm import sessionmaker
 
 
 # MySQL connection details
-DATABASE_URL = "mysql+pymysql://root@localhost:3306/fastapiblog"
+DATABASE_URL = "mysql+pymysql://root@db:3306/fastapiblog"
+# DATABASE_URL = "mysql+pymysql://root@localhost:3306/fastapiblog"
+
 
 # Purpose: Connects to the database.
 # Parameters: "sqlite:///post.db": The database URL. 
