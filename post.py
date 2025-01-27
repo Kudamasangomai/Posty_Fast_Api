@@ -10,9 +10,7 @@ from schemas import PostCreate,PostUpdate , PostResponse , CommentCreate
 from fastapi import APIRouter , Depends,HTTPException ,status,UploadFile,File
 
 
-
-
-router = APIRouter(prefix="/posts" ,tags=["Posts"] )
+router = APIRouter(prefix="/api/posts" ,tags=["Posts"] )
 
 #dependency check if user is authenticated and authorized(is the owner) to take acction on Post Model
 def is_owner(postid:int ,  db: Session = Depends(get_session),user: User = Depends(get_auth_user)):
@@ -26,12 +24,13 @@ def is_owner(postid:int ,  db: Session = Depends(get_session),user: User = Depen
       return post
 
 
-@router.get("/" ,status_code=status.HTTP_200_OK ,response_model = list[PostResponse ] ,summary="Get All Posts")
-def posts(db: Session = Depends(get_session)):
+#Get all Posts
+@router.get("/" ,status_code=status.HTTP_200_OK ,response_model = list[PostResponse] ,summary="Get All Posts")
+def posts(db: Session = Depends(get_session),skip: int = 0, limit: int = 2 ):
     posts = db.query(Post).options(
                             joinedload(Post.user),
                             joinedload(Post.comments)
-                            ).filter(Post.published == True).all()
+                            ).filter(Post.published == True).offset(skip).limit(limit).all()
     
     # I hope there is a better way than this
     for post in posts:
@@ -41,6 +40,7 @@ def posts(db: Session = Depends(get_session)):
     return posts
 
 
+#Get single Post 
 @router.get("/{id}", status_code=status.HTTP_200_OK ,response_model = PostResponse,summary="Get Single Post" )
 def post(id:int ,user: User = Depends(auth.get_auth_user),db: Session = Depends(get_session)):
     post = db.query(Post).options(
@@ -52,6 +52,7 @@ def post(id:int ,user: User = Depends(auth.get_auth_user),db: Session = Depends(
  
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Post not Found")
+   
     
     likes_count = db.query(Like).filter(Like.post_id == id).count()
     comments_count = db.query(Comment).filter(Comment.post_id == id).count()
@@ -61,7 +62,7 @@ def post(id:int ,user: User = Depends(auth.get_auth_user),db: Session = Depends(
     post['comments_count'] = comments_count
     return post
 
-
+#Create Post Endpoint
 @router.post("/" ,status_code=status.HTTP_201_CREATED ,response_model = PostResponse, summary="Create A Post")
 def store( request: PostCreate,
            user: User = Depends(auth.get_auth_user),
@@ -73,7 +74,7 @@ def store( request: PostCreate,
     db.refresh(newpost)
     return newpost
 
-
+#Update Post Endpoint
 @router.put("/{id}",response_model=PostResponse,summary="Update A Post")
 def update(request:PostUpdate ,post:Post = Depends(is_owner), db: Session = Depends(get_session)): 
     post.post = request.post
@@ -81,13 +82,14 @@ def update(request:PostUpdate ,post:Post = Depends(is_owner), db: Session = Depe
     db.commit()
     return post
  
+ #Delete Post Endpoint
 @router.delete("/{id}",status_code=status.HTTP_204_NO_CONTENT,summary="Delete A Post" )
 def destory(post: Post =Depends(is_owner), db: Session = Depends(get_session)):
     db.delete(post)
     db.commit()
     return "Post was deleted successfully"
 
-
+# Publish Post End Point 
 @router.post("/{id}/publish" ,summary="Publish A Post")
 def publish_post(post:Post = Depends(is_owner), db : Session = Depends(get_session)):
     post.published = not post.published
@@ -96,10 +98,24 @@ def publish_post(post:Post = Depends(is_owner), db : Session = Depends(get_sessi
     message = "Post published successfully" if post.published else "Post unpublished successfully"
     return {"message": message}
 
-
+#Like post Endpoint
 @router.post("/{id}/likepost",summary="Like A Post" )
 def like_post(id:int ,user: User = Depends(auth.get_auth_user),db: Session = Depends(get_session)):
     post = db.query(Post).filter(Post.id == id).first()
+
+    # show error if Post Does Exist
+    if not post:
+          raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Post Not Found")
+
+    #if post Exist check if User liked ir
+    liked = db.query(Like).filter( User.id == Like.user_id, Post.id ==id).first()
+
+    #if user liked it Remove the post to peform a toggle(like unlike)
+    if liked:
+        db.delete(liked)
+        db.commit()
+        return {"message": "Post Unliked successfully"}
+    #if not liked add user info to db as liked
     likedpost = Like(
         user_id= user.id,
         post_id = post.id
@@ -109,7 +125,7 @@ def like_post(id:int ,user: User = Depends(auth.get_auth_user),db: Session = Dep
     db.refresh(likedpost)
     return {"message": "Post liked successfully"}
 
-
+# Search Post End Point
 @router.get("/search/{search}",response_model=list[PostResponse])
 def search(search:str, db: Session = Depends(get_session)): 
     searchresults = db.query(Post).filter(Post.post.contains(search)).all()
@@ -117,7 +133,7 @@ def search(search:str, db: Session = Depends(get_session)):
         return searchresults 
     return {"message":"No results found"}
 
-
+# Comment A Post End Point
 @router.post("/{id}/comment")
 def comment_post(id:int ,request :CommentCreate ,user: User = Depends(auth.get_auth_user),db: Session = Depends(get_session)):
     post = db.query(Post).filter(Post.id == id).first()

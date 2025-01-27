@@ -2,6 +2,7 @@ import auth,user ,post
 from database import Base ,engine
 from fastapi import FastAPI 
 from fastapi.security import OAuth2PasswordBearer,HTTPBasic
+from fastapi.middleware.cors import CORSMiddleware
 
 # Create the database
 Base.metadata.create_all(engine)
@@ -15,6 +16,12 @@ app = FastAPI(
     summary="Just learning API development with Fast API",
     contact={"name" : "Kudakwashe Masangomai", "email" : "kudam775@gmail.com" },
     # dependencies= [Depends(security)]  global BasicAuth protection
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['http://localhost:6000'],
+    allow_methods=['Post']
+
 )
 app.include_router(auth.router)
 app.include_router(user.router)

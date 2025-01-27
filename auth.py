@@ -2,16 +2,21 @@ import models
 import schemas
 import bcrypt
 from models import User
+from typing import Annotated
 from database import get_session
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends
 from passlib.context import CryptContext
 from sqlalchemy.exc import IntegrityError
 from fastapi import Depends ,HTTPException ,status
-from fastapi.security import HTTPBasic ,HTTPBasicCredentials
+from fastapi.security import HTTPBasic ,HTTPBasicCredentials ,OAuth2PasswordBearer
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# oauth2_bearer  = OAuth2PasswordBearer(tokenUrl="auth/token")
+# oauth2_dependency_bearer = Annotated[str ,Depends(oauth2_bearer)]
+
+
 security = HTTPBasic()
 router = APIRouter(tags=["Auth"] )
 
