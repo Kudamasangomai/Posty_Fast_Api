@@ -50,7 +50,7 @@ class PostResponse(BaseModel):
     class Config:
         orm_mode = True
 
-    
+   # user create request 
 class User(BaseModel):
     name: str = Field(min_length=5)
     username : str = Field(min_length=3)
@@ -60,3 +60,7 @@ class User(BaseModel):
 class UserloginRequest(BaseModel):
     username : str = Field(min_length=3)
     email: EmailStr
+
+class Token(BaseModel):
+    access_token:str
+    token_type: str

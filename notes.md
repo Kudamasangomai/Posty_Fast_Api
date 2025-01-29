@@ -50,6 +50,14 @@ back_populates="posts": This creates a bidirectional relationship between post a
 ## Authentication
 
 ### HTTP Basic Auth
-- the simplest way to authenticate using username and password
+- the simplest way to authenticate is using username and password
 - HTTPBasic Instance creates a security dependency that ensures clients provide a username     and password using HTTP  Basic Authentication.
 Depends(security) - This dependency injection ensures that each request checks for credentials and provides them to the route
+
+
+###  JWTS (JSON Web Token)
+
+- install pyjwt[crypto] .( a library for encoding and decoding JWTs using Python)
+- install "python-jose[crytography]"
+- install python-multipart
+- saw fire

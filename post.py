@@ -8,9 +8,13 @@ from sqlalchemy.orm import joinedload
 from models import Post ,User ,Like ,Comment
 from schemas import PostCreate,PostUpdate , PostResponse , CommentCreate
 from fastapi import APIRouter , Depends,HTTPException ,status,UploadFile,File
+from auth import get_current_user
+from typing import Annotated
 
 
 router = APIRouter(prefix="/api/posts" ,tags=["Posts"] )
+
+user_dependency = Annotated[dict,Depends(get_current_user)]
 
 #dependency check if user is authenticated and authorized(is the owner) to take acction on Post Model
 def is_owner(postid:int ,  db: Session = Depends(get_session),user: User = Depends(get_auth_user)):
@@ -26,7 +30,7 @@ def is_owner(postid:int ,  db: Session = Depends(get_session),user: User = Depen
 
 #Get all Posts
 @router.get("/" ,status_code=status.HTTP_200_OK ,response_model = list[PostResponse] ,summary="Get All Posts")
-def posts(db: Session = Depends(get_session),skip: int = 0, limit: int = 2 ):
+def posts(user: user_dependency, db: Session = Depends(get_session),skip: int = 0, limit: int = 2 ):
     posts = db.query(Post).options(
                             joinedload(Post.user),
                             joinedload(Post.comments)
